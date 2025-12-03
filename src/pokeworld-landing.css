@@ -1,0 +1,808 @@
+/* Pokeworld landing page styles copied from the other project */
+/* (Content adapted to live inside this repo under src/) */
+:root {
+  --poke-red: #CC0000;
+  --poke-red-dark: #8B0000;
+  --poke-red-light: #FF3333;
+  --poke-blue: #3B4CCA;
+  --poke-blue-dark: #2A3A99;
+  --poke-yellow: #FFDE00;
+  --poke-yellow-dark: #B3A000;
+  --poke-yellow-light: #FFF44F;
+  --sky-light: #87CEEB;
+  --sky-blue: #4FC3F7;
+  --grass-green: #7CB342;
+  --grass-dark: #558B2F;
+  --pixel-black: #1a1a2e;
+  --pixel-white: #FAFAFA;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+.world-root {
+  font-family: 'VT323', monospace;
+  min-height: 100vh;
+  background: linear-gradient(180deg, var(--sky-light) 0%, var(--sky-blue) 30%, var(--grass-green) 70%, var(--grass-dark) 100%);
+  color: var(--pixel-black);
+  padding-bottom: 0;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'VT323', monospace;
+  background: linear-gradient(180deg,
+      var(--sky-light) 0%,
+      var(--sky-blue) 30%,
+      var(--grass-green) 70%,
+      var(--grass-dark) 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  padding-bottom: 100px;
+  image-rendering: pixelated;
+}
+
+.clouds {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 250px;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.cloud {
+  position: absolute;
+  background: white;
+  border-radius: 50px;
+  opacity: 0.9;
+  animation: floatCloud linear infinite;
+}
+
+.cloud::before,
+.cloud::after {
+  content: '';
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+}
+
+.cloud-1 {
+  width: 120px;
+  height: 50px;
+  top: 40px;
+  animation-duration: 30s;
+}
+
+.cloud-1::before {
+  width: 60px;
+  height: 60px;
+  top: -30px;
+  left: 20px;
+}
+
+.cloud-1::after {
+  width: 45px;
+  height: 45px;
+  top: -20px;
+  left: 65px;
+}
+
+.cloud-2 {
+  width: 100px;
+  height: 40px;
+  top: 100px;
+  animation-duration: 40s;
+  animation-delay: -15s;
+}
+
+.cloud-2::before {
+  width: 50px;
+  height: 50px;
+  top: -25px;
+  left: 15px;
+}
+
+.cloud-2::after {
+  width: 35px;
+  height: 35px;
+  top: -15px;
+  left: 55px;
+}
+
+.cloud-3 {
+  width: 140px;
+  height: 55px;
+  top: 60px;
+  animation-duration: 50s;
+  animation-delay: -30s;
+}
+
+.cloud-3::before {
+  width: 70px;
+  height: 70px;
+  top: -35px;
+  left: 25px;
+}
+
+.cloud-3::after {
+  width: 50px;
+  height: 50px;
+  top: -25px;
+  left: 80px;
+}
+
+.cloud-4 {
+  width: 90px;
+  height: 35px;
+  top: 140px;
+  animation-duration: 35s;
+  animation-delay: -10s;
+}
+
+.cloud-4::before {
+  width: 45px;
+  height: 45px;
+  top: -22px;
+  left: 12px;
+}
+
+.cloud-4::after {
+  width: 32px;
+  height: 32px;
+  top: -14px;
+  left: 50px;
+}
+
+@keyframes floatCloud {
+  from {
+    transform: translateX(-200px);
+  }
+
+  to {
+    transform: translateX(calc(100vw + 200px));
+  }
+}
+
+.grass-decoration {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background:
+    repeating-linear-gradient(90deg,
+      var(--grass-green) 0px,
+      var(--grass-green) 20px,
+      var(--grass-dark) 20px,
+      var(--grass-dark) 40px);
+  z-index: 1;
+  border-top: 4px solid var(--pixel-black);
+}
+
+.grass-decoration::before {
+  content: '';
+  position: absolute;
+  top: -25px;
+  left: 0;
+  right: 0;
+  height: 25px;
+  background:
+    repeating-linear-gradient(135deg,
+      transparent 0px,
+      transparent 12px,
+      var(--grass-green) 12px,
+      var(--grass-green) 24px);
+}
+
+.landing-content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  padding: 40px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.intro-box {
+  background: var(--pixel-white);
+  border: 6px solid var(--pixel-black);
+  border-radius: 12px;
+  padding: 30px;
+  margin: 30px 0;
+  box-shadow:
+    inset 0 0 0 4px #E8E8E8,
+    12px 12px 0 rgba(0, 0, 0, 0.3);
+  text-align: left;
+}
+
+.intro-title {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 16px;
+  color: var(--poke-red);
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.professor-text {
+  font-size: 22px;
+  line-height: 1.7;
+  color: var(--pixel-black);
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.professor-text::before {
+  content: '> ';
+  color: var(--poke-blue);
+}
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.menu-item {
+  background: linear-gradient(180deg, var(--pixel-white) 0%, #E8E8E8 100%);
+  border: 4px solid var(--pixel-black);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow:
+    inset -3px -3px 0 #B0B0B0,
+    inset 3px 3px 0 var(--pixel-white),
+    4px 4px 0 var(--pixel-black);
+  position: relative;
+}
+
+.menu-item::before {
+  content: '>';
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Press Start 2P', cursive;
+  font-size: 12px;
+  color: var(--pixel-black);
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+.menu-item:hover::before {
+  opacity: 1;
+}
+
+.menu-item:hover {
+  transform: translateX(8px);
+  background: linear-gradient(180deg, var(--poke-yellow-light) 0%, var(--poke-yellow) 100%);
+}
+
+.menu-title {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 11px;
+  color: var(--pixel-black);
+  margin-bottom: 10px;
+  padding-left: 20px;
+}
+
+.menu-desc {
+  font-size: 16px;
+  color: #444;
+  padding-left: 20px;
+  line-height: 1.5;
+}
+
+.logo-pokeball {
+  width: 150px;
+  height: 150px;
+  margin: 0 auto 30px;
+  background: linear-gradient(180deg, var(--poke-red) 50%, var(--pixel-white) 50%);
+  border: 6px solid var(--pixel-black);
+  border-radius: 50%;
+  position: relative;
+  animation: pokeballFloat 3s ease-in-out infinite;
+  box-shadow:
+    inset -10px -10px 0 rgba(0, 0, 0, 0.2),
+    inset 10px 10px 0 rgba(255, 255, 255, 0.2),
+    0 15px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Logo image used instead of the text title */
+.site-logo {
+  display: block;
+  width: 520px;
+  max-width: 94%;
+  height: auto;
+  margin: 0 auto 18px;
+  image-rendering: pixelated;
+  animation: logoPulse 3s ease-in-out infinite;
+}
+
+@keyframes logoPulse {
+
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    filter: drop-shadow(0 0 30px rgba(255, 222, 0, 0.6));
+  }
+
+  50% {
+    transform: translateY(-6px) scale(1.03);
+    filter: drop-shadow(0 0 50px rgba(255, 222, 0, 0.95));
+  }
+}
+
+@media (max-width: 768px) {
+  .site-logo {
+    width: 320px;
+    margin-bottom: 12px;
+  }
+}
+
+/* Ensure logo-replacement matches the site-logo sizing */
+.logo-replacement {
+  width: 520px;
+  max-width: 94%;
+  display: block;
+  margin: 0 auto 18px;
+  image-rendering: pixelated;
+  animation: logoPulse 3s ease-in-out infinite;
+}
+
+@media (max-width: 768px) {
+  .logo-replacement {
+    width: 320px;
+    margin-bottom: 12px;
+  }
+}
+
+.logo-pokeball::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: var(--pixel-black);
+  transform: translateY(-50%);
+}
+
+.logo-pokeball::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  background: var(--pixel-white);
+  border: 6px solid var(--pixel-black);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: inset 0 0 0 4px #E0E0E0;
+  animation: buttonPulse 2s ease-in-out infinite;
+}
+
+@keyframes pokeballFloat {
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(-5deg);
+  }
+
+  50% {
+    transform: translateY(-20px) rotate(5deg);
+  }
+}
+
+@keyframes buttonPulse {
+
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 4px #E0E0E0, 0 0 0 0 rgba(255, 255, 255, 0.5);
+  }
+
+  50% {
+    box-shadow: inset 0 0 0 4px #E0E0E0, 0 0 20px 5px rgba(255, 255, 255, 0.8);
+  }
+}
+
+.logo-text {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 64px;
+  color: var(--poke-yellow);
+  text-shadow:
+    6px 6px 0 var(--poke-blue),
+    -3px -3px 0 var(--pixel-black),
+    3px -3px 0 var(--pixel-black),
+    -3px 3px 0 var(--pixel-black),
+    3px 3px 0 var(--pixel-black),
+    0 0 30px var(--poke-yellow),
+    0 0 60px var(--poke-yellow-light);
+  letter-spacing: 4px;
+  margin-bottom: 20px;
+  animation: titlePulse 3s ease-in-out infinite;
+}
+
+@keyframes titlePulse {
+
+  0%,
+  100% {
+    text-shadow:
+      6px 6px 0 var(--poke-blue),
+      -3px -3px 0 var(--pixel-black),
+      3px -3px 0 var(--pixel-black),
+      -3px 3px 0 var(--pixel-black),
+      3px 3px 0 var(--pixel-black),
+      0 0 30px var(--poke-yellow),
+      0 0 60px var(--poke-yellow-light);
+  }
+
+  50% {
+    text-shadow:
+      6px 6px 0 var(--poke-blue),
+      -3px -3px 0 var(--pixel-black),
+      3px -3px 0 var(--pixel-black),
+      -3px 3px 0 var(--pixel-black),
+      3px 3px 0 var(--pixel-black),
+      0 0 50px var(--poke-yellow),
+      0 0 100px var(--poke-yellow-light);
+  }
+}
+
+.subtitle {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 16px;
+  color: var(--pixel-white);
+  text-shadow: 3px 3px 0 var(--pixel-black);
+  margin-bottom: 15px;
+  letter-spacing: 2px;
+}
+
+.version-badge {
+  display: inline-block;
+  padding: 10px 25px;
+  background: var(--poke-red);
+  border: 4px solid var(--pixel-black);
+  border-radius: 25px;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 12px;
+  color: var(--pixel-white);
+  box-shadow: 0 5px 0 var(--poke-red-dark);
+  margin-bottom: 50px;
+}
+
+.enter-btn {
+  display: inline-block;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 20px;
+  padding: 25px 60px;
+  background: linear-gradient(180deg, var(--poke-yellow) 0%, var(--poke-yellow-dark) 100%);
+  color: var(--pixel-black);
+  border: 5px solid var(--pixel-black);
+  border-radius: 15px;
+  cursor: pointer;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  box-shadow:
+    inset -5px -5px 0 rgba(0, 0, 0, 0.2),
+    inset 5px 5px 0 rgba(255, 255, 255, 0.3),
+    0 8px 0 var(--pixel-black),
+    0 12px 20px rgba(0, 0, 0, 0.3);
+  transition: all 0.1s;
+  animation: buttonBounce 1.5s ease-in-out infinite;
+}
+
+@keyframes buttonBounce {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+.enter-btn:hover {
+  transform: translateY(4px);
+  box-shadow:
+    inset -5px -5px 0 rgba(0, 0, 0, 0.2),
+    inset 5px 5px 0 rgba(255, 255, 255, 0.3),
+    0 4px 0 var(--pixel-black),
+    0 8px 15px rgba(0, 0, 0, 0.3);
+  animation: none;
+}
+
+.enter-btn:active {
+  transform: translateY(8px);
+  box-shadow:
+    inset -5px -5px 0 rgba(0, 0, 0, 0.2),
+    inset 5px 5px 0 rgba(255, 255, 255, 0.3),
+    0 0 0 var(--pixel-black);
+}
+
+.deco-pokeball {
+  position: fixed;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(180deg, var(--poke-red) 50%, var(--pixel-white) 50%);
+  border: 3px solid var(--pixel-black);
+  border-radius: 50%;
+  z-index: 2;
+  opacity: 0.6;
+}
+
+.deco-pokeball::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--pixel-black);
+  transform: translateY(-50%);
+}
+
+.deco-pokeball::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  background: var(--pixel-white);
+  border: 3px solid var(--pixel-black);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.deco-pokeball:nth-child(1) {
+  bottom: 100px;
+  left: 10%;
+  animation: floatBall 4s ease-in-out infinite;
+}
+
+.deco-pokeball:nth-child(2) {
+  bottom: 120px;
+  right: 15%;
+  animation: floatBall 5s ease-in-out infinite 1s;
+}
+
+.deco-pokeball:nth-child(3) {
+  bottom: 90px;
+  left: 25%;
+  animation: floatBall 4.5s ease-in-out infinite 0.5s;
+}
+
+.deco-pokeball:nth-child(4) {
+  bottom: 110px;
+  right: 30%;
+  animation: floatBall 3.5s ease-in-out infinite 1.5s;
+}
+
+@keyframes floatBall {
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-15px) rotate(180deg);
+  }
+}
+
+.footer-text {
+  display: none;
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  color: var(--pixel-white);
+  text-shadow: 2px 2px 0 var(--pixel-black);
+  z-index: 10;
+  animation: blink 1.5s steps(2) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.sprite {
+  position: fixed;
+  z-index: 5;
+  filter: drop-shadow(3px 3px 2px rgba(0, 0, 0, 0.3));
+}
+
+.sprite-pikachu {
+  width: 80px;
+  height: 80px;
+  top: 20%;
+  left: 3%;
+  animation: spriteHop 1.2s ease-in-out infinite;
+}
+
+.sprite-bulbasaur {
+  width: 90px;
+  height: 70px;
+  top: 55%;
+  right: 2%;
+  animation: spriteWalk 2.5s ease-in-out infinite;
+}
+
+.sprite-charmander {
+  width: 70px;
+  height: 80px;
+  top: 60%;
+  left: 2%;
+  animation: spriteBounce 1.5s ease-in-out infinite 0.3s;
+}
+
+.sprite-squirtle {
+  width: 75px;
+  height: 70px;
+  top: 25%;
+  right: 3%;
+  animation: spriteHop 1.4s ease-in-out infinite 0.5s;
+}
+
+@keyframes spriteHop {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+@keyframes spriteWalk {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(15px);
+  }
+
+  75% {
+    transform: translateX(-15px);
+  }
+}
+
+@keyframes spriteBounce {
+
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(-10px) scale(1.05);
+  }
+}
+
+@keyframes trainerIdle {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.sparkle {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  background: var(--poke-yellow);
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  z-index: 3;
+  animation: sparkleFloat 3s ease-in-out infinite;
+}
+
+.sparkle:nth-child(1) {
+  top: 15%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.sparkle:nth-child(2) {
+  top: 20%;
+  right: 12%;
+  animation-delay: 0.5s;
+  width: 12px;
+  height: 12px;
+}
+
+.sparkle:nth-child(3) {
+  top: 35%;
+  left: 8%;
+  animation-delay: 1s;
+  width: 6px;
+  height: 6px;
+}
+
+.sparkle:nth-child(4) {
+  top: 45%;
+  right: 15%;
+  animation-delay: 1.5s;
+}
+
+.sparkle:nth-child(5) {
+  top: 65%;
+  left: 12%;
+  animation-delay: 2s;
+  width: 10px;
+  height: 10px;
+}
+
+@keyframes sparkleFloat {
+
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: scale(1.3) rotate(180deg);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .logo-text {
+    font-size: 36px;
+  }
+
+  .logo-pokeball {
+    width: 100px;
+    height: 100px;
+  }
+
+  .enter-btn {
+    font-size: 14px;
+    padding: 20px 40px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+  }
+}
+
+/* Additional dashboard/utility classes included in original styles (kept for compatibility) */
+:root {
+  --poke-blue-light: #5B6CDA;
+  --poke-gold: #DAA520;
+}
+
+/* keep the rest of the large stylesheet trimmed for brevity; main visuals are above */
