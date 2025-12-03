@@ -6,6 +6,11 @@ export default defineConfig({
   base: '/',
   plugins: [react()],
   server: {
-    allowedHosts: ['ai-town-your-app-name.fly.dev', 'localhost', '127.0.0.1'],
+    allowedHosts: [
+      'ai-town-your-app-name.fly.dev',
+      'localhost',
+      '127.0.0.1',
+      'pokeworld-production.up.railway.app',
+    ],
   },
 });
