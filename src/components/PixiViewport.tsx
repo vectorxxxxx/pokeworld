@@ -14,6 +14,8 @@ export type ViewportProps = {
   screenHeight: number;
   worldWidth: number;
   worldHeight: number;
+  // When false, do not enable pinch or wheel zoom plugins (useful for mobile)
+  allowZoom?: boolean;
   children?: ReactNode;
 };
 
@@ -30,42 +32,34 @@ export default PixiComponent('Viewport', {
     if (viewportRef) {
       viewportRef.current = viewport;
     }
-    // Activate plugins
-    viewport
-      .drag()
-      .pinch({})
-      .wheel()
-      .decelerate()
-      .clamp({ direction: 'all', underflow: 'center' });
+    // Activate plugins. Optionally disable pinch/wheel when `allowZoom` is false
+    // so mobile can keep drag but lose pinch-to-zoom.
+    const allowZoom = typeof props.allowZoom === 'boolean' ? props.allowZoom : true;
+    viewport.drag();
+    if (allowZoom) {
+      viewport.pinch({}).wheel();
+    }
+    viewport.decelerate().clamp({ direction: 'all', underflow: 'center' });
 
-    // Compute an initial scale so the world fits the available screen width.
-    // Use horizontal fit (width) rather than min(width,height) so the
-    // viewport clamps zoom based on the horizontal axis. This prevents
-    // excessive empty gutters on wide screens when the canvas has a
-    // fixed aspect ratio (e.g. 16:9) and the available container is
-    // taller than the canvas aspect.
-    const initialScale = (props.screenWidth / props.worldWidth) || 1;
-    // Apply initial zoom and clamp bounds so the world never zooms
-    // out smaller than the fit-to-screen scale. This prevents showing
-    // large empty borders when users zoom out too far.
-    viewport.zoom(initialScale);
-    viewport.clampZoom({
-      minScale: initialScale,
-      maxScale: Math.max(initialScale * 3.0, initialScale + 0.1),
-    });
-    // Also store the fit scale on the viewport and enforce it during
-    // zoom events. Some plugins may apply scale changes before the
-    // clamp fully takes effect, so snapping back here prevents the
-    // user from seeing an over-zoomed-out view.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (viewport as any).__fitMinScale = initialScale;
-    viewport.on('zoomed', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const ms = (viewport as any).__fitMinScale || initialScale;
-      if (viewport.scale.x < ms) {
-        viewport.scale.set(ms);
-      }
-    });
+    // Compute a sensible clamp for min/max zoom so users cannot zoom out
+    // past a point where the world would be clipped on either axis. Use
+    // the smaller (more restrictive) of the horizontal and vertical fit
+    // scales so the entire world remains visible when fully zoomed-out.
+    try {
+      const sw = props.screenWidth || 1;
+      const sh = props.screenHeight || 1;
+      const ww = props.worldWidth || 1;
+      const wh = props.worldHeight || 1;
+      const fitH = sw / ww;
+      const fitV = sh / wh;
+      const minScale = Math.max(0.0001, Math.min(fitH, fitV));
+      viewport.clampZoom({
+        minScale,
+        maxScale: Math.max(minScale * 3.0, minScale + 0.1),
+      });
+    } catch (e) {
+      // ignore clamp errors
+    }
     return viewport;
   },
   applyProps(viewport, oldProps: any, newProps: any) {
@@ -76,25 +70,26 @@ export default PixiComponent('Viewport', {
         viewport[p] = newProps[p];
       }
     });
-    // If the screen size changed, adjust zoom to continue fitting the world
+    // Update clamp bounds on resize so the min-scale respects both
+    // horizontal and vertical fit. Do not change the current zoom; we
+    // only update allowed bounds so user gestures remain uninterrupted.
     if (
       (oldProps.screenWidth !== newProps.screenWidth || oldProps.screenHeight !== newProps.screenHeight) &&
       newProps.worldWidth &&
       newProps.worldHeight
     ) {
-      // When resizing, compute the target fit scale using horizontal
-      // fit (width) so the clamp remains governed by the horizontal
-      // size rather than the vertical size.
-      const targetScale = (newProps.screenWidth / newProps.worldWidth) || 1;
-      viewport.zoom(targetScale);
-      viewport.clampZoom({
-        minScale: targetScale,
-        maxScale: Math.max(targetScale * 3.0, targetScale + 0.1),
-      });
-      // Update stored fit scale so the zoom-enforcer uses the latest
-      // target value after a resize.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (viewport as any).__fitMinScale = targetScale;
+      try {
+        const sw = newProps.screenWidth || 1;
+        const sh = newProps.screenHeight || 1;
+        const ww = newProps.worldWidth || 1;
+        const wh = newProps.worldHeight || 1;
+        const fitH = sw / ww;
+        const fitV = sh / wh;
+        const minScale = Math.max(0.0001, Math.min(fitH, fitV));
+        viewport.clampZoom({ minScale, maxScale: Math.max(minScale * 3.0, minScale + 0.1) });
+      } catch (e) {
+        // ignore
+      }
     }
   },
 });

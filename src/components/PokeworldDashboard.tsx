@@ -2,7 +2,6 @@ import { Stage } from '@pixi/react';
 import { sound } from '@pixi/sound';
 import { ConvexProvider, useConvex, useQuery } from 'convex/react';
 import { Viewport } from 'pixi-viewport';
-import * as PIXI from 'pixi.js';
 import { useEffect, useRef, useState } from 'react';
 import { useElementSize } from 'usehooks-ts';
 import { api } from '../../convex/_generated/api';
@@ -130,78 +129,8 @@ export default function PokeworldDashboard() {
     return () => clearInterval(id);
   }, [worldStatus]);
 
-  // When entering fullscreen, ensure the Pixi viewport is zoomed out to fit
-  // the whole world and centered. We listen for fullscreen changes on the
-  // document and, when the fullscreen element matches our center DOM, compute
-  // the fit scale from the current measured width and the game's world width.
-  useEffect(() => {
-    const handler = () => {
-      try {
-        const el = centerDomRef.current;
-        if (!el) return;
-        const isFs = document.fullscreenElement === el;
-        if (!isFs) return;
-        const vp = pixiViewportRef.current;
-        if (!vp) return;
-        if (!game) return;
-        const worldWidth = game.worldMap.width * game.worldMap.tileDim;
-        const worldHeight = game.worldMap.height * game.worldMap.tileDim;
-        const targetScale = (width && worldWidth) ? (width / worldWidth) : 1;
-        // Set zoom and clamp bounds similar to PixiViewport initial logic.
-        try {
-          vp.zoom(targetScale);
-          vp.clampZoom({ minScale: targetScale, maxScale: Math.max(targetScale * 3.0, targetScale + 0.1) });
-          // store fit scale
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (vp as any).__fitMinScale = targetScale;
-          // center the viewport on the world center and animate scale/position
-          const centerPoint = new PIXI.Point(worldWidth / 2, worldHeight / 2);
-          vp.animate({ position: centerPoint, scale: targetScale });
-        } catch (e) {
-          // ignore animation/zoom errors
-        }
-      } catch (e) {
-        // ignore
-      }
-    };
-    document.addEventListener('fullscreenchange', handler);
-    return () => document.removeEventListener('fullscreenchange', handler);
-  }, [centerDomRef, width, game]);
-
-  // On small screens (mobile), when the measured center size updates, compute a fit
-  // scale so the Pixi viewport shows the entire world fully zoomed-out without cropping.
-  useEffect(() => {
-    try {
-      if (!game) return;
-      // Only apply this on narrow viewports (mobile)
-      if (!isMobile) return;
-      const vp = pixiViewportRef.current;
-      if (!vp) return;
-      // Use the stage dimensions (mobile fixed 800x600) or measured center size on desktop
-      const stageW = isMobile ? 800 : width;
-      const stageH = isMobile ? 600 : height;
-      if (!stageW || !stageH) return;
-      // If the center DOM is fullscreen, skip — fullscreen logic already handles fit.
-      if (document.fullscreenElement === centerDomRef.current) return;
-
-      const worldWidth = game.worldMap.width * game.worldMap.tileDim;
-      const worldHeight = game.worldMap.height * game.worldMap.tileDim;
-      if (!worldWidth || !worldHeight) return;
-
-      const targetScale = Math.min(stageW / worldWidth, stageH / worldHeight);
-      try {
-        vp.zoom(targetScale);
-        vp.clampZoom({ minScale: targetScale, maxScale: Math.max(targetScale * 3.0, targetScale + 0.1) });
-        const centerPoint = new PIXI.Point(worldWidth / 2, worldHeight / 2);
-        // Animate to the fitted position/scale for a smooth transition.
-        vp.animate({ position: centerPoint, scale: targetScale });
-      } catch (e) {
-        // ignore animation/zoom errors
-      }
-    } catch (e) {
-      // ignore
-    }
-  }, [width, height, game, centerDomRef, isMobile]);
+  // NOTE: Automatic fit-to-world behavior (on fullscreen or mobile resize)
+  // has been removed so users retain control of pan/zoom gestures.
 
   // Track window width to update `isMobile` responsively
   useEffect(() => {
@@ -491,7 +420,10 @@ export default function PokeworldDashboard() {
           className="center-area flex-1 min-h-0 relative bg-brown-900"
         >
           <div ref={containerRef} className="absolute inset-0">
-            <div className="game-screen" style={{ position: 'relative', width: '100%', height: '100%' }}>
+            <div
+              className="game-screen"
+              style={{ position: 'relative', width: '100%', height: '100%', touchAction: isMobile ? 'pan-x pan-y' : undefined }}
+            >
               <button
                 className="screen-btn"
                 style={{ position: 'absolute', right: 12, top: 12, zIndex: 20 }}
@@ -524,6 +456,7 @@ export default function PokeworldDashboard() {
                     engineId={engineId}
                     width={width}
                     height={height}
+                    isMobile={isMobile}
                     historicalTime={historicalTime}
                     setSelectedElement={setSelectedElement}
                     viewportRef={pixiViewportRef}

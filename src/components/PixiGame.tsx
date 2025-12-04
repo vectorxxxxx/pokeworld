@@ -25,6 +25,8 @@ export const PixiGame = (props: {
   setSelectedElement: SelectElement;
   // Optional viewport ref passed from parent so callers can control zoom/center.
   viewportRef?: MutableRefObject<Viewport | undefined>;
+  // Whether the client is on a mobile viewport; when true we disable pinch/wheel zoom.
+  isMobile?: boolean;
 }) => {
   // PIXI setup.
   const pixiApp = useApp();
@@ -104,6 +106,8 @@ export const PixiGame = (props: {
       worldWidth={width * tileDim}
       worldHeight={height * tileDim}
       viewportRef={viewportRef}
+      // disable zoom on mobile while keeping drag
+      allowZoom={!props.isMobile}
     >
       <PixiStaticMap
         map={props.game.worldMap}
