@@ -26,7 +26,18 @@ if (isNaN(tilesetpxh)) {
 // Read the JSON file and parse it
 const tiledMapData = JSON.parse(fs.readFileSync(mapDataPath, 'utf8'));
 
-const tileDimension = tiledMapData.tilewidth;
+// Default tile dimension comes from the Tiled JSON, but allow an
+// optional CLI override as the 6th argument. This helps when the
+// tiles in the combined tilesheet are a different size than the
+// top-level map tilewidth (common when combining many tilesets).
+let tileDimension = tiledMapData.tilewidth;
+const tileDimOverride = process.argv[6];
+if (tileDimOverride) {
+  const parsed = parseInt(tileDimOverride, 10);
+  if (!isNaN(parsed) && parsed > 0) {
+    tileDimension = parsed;
+  }
+}
 const width = tiledMapData.width;
 const height = tiledMapData.height;
 

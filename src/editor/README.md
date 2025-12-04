@@ -29,7 +29,7 @@
 After saving your map, you will receive a JavaScript export object similar to the following:
 
 ```js
-export const tilesetpath = "./tilesets/gentle-obj.png";
+export const tilesetpath = "/assets/summer/combined-tilesheet.png";
 export const tiledim = 32;
 export const screenxtiles = 45;
 export const screenytiles = 32;

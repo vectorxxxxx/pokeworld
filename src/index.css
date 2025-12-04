@@ -1,6 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Import fonts for headers/buttons and paragraphs */
+@layer base {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  button,
+  .button {
+    font-family: 'Press Start 2P', cursive;
+  }
+
+  p {
+    font-family: 'VT323', monospace;
+  }
+}
 
 @font-face {
   font-family: 'Upheaval Pro';
@@ -13,11 +34,11 @@
 }
 
 .font-display {
-  font-family: 'Upheaval Pro', 'sans-serif';
+  font-family: var(--font-display);
 }
 
 .font-body {
-  font-family: 'VCR OSD Mono', 'monospace';
+  font-family: var(--font-body);
 }
 
 .font-system {
@@ -28,6 +49,8 @@
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
+  --font-display: 'Press Start 2P', cursive;
+  --font-body: 'VT323', monospace;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -40,8 +63,9 @@
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb)))
-    rgb(var(--background-start-rgb));
+  background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
+  /* Default body font (general text / paragraphs) */
+  font-family: var(--font-body);
 }
 
 .game-background {
@@ -155,8 +179,8 @@ body {
     font-size: 16px;
   }
 
-  .button > div,
-  .button > span {
+  .button>div,
+  .button>span {
     vertical-align: top;
     line-height: 1;
   }

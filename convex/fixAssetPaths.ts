@@ -2,7 +2,7 @@ import { mutation } from './_generated/server';
 
 // Mutation to repair stored asset paths in the `maps` collection.
 // It removes any leading `/ai-town` prefix and ensures paths are absolute
-// to the domain root (e.g. `/assets/gentle-obj.png`).
+// to the domain root (e.g. `/assets/summer/combined-tilesheet.png`).
 export default mutation({
   handler: async (ctx) => {
     const maps = await ctx.db.query('maps').collect();
