@@ -1144,6 +1144,15 @@ body {
   box-shadow: none;
 }
 
+/* Small variant for compact sidebar buttons (mobile row) */
+.battle-btn.small {
+  padding: 8px 10px;
+  font-size: 9px;
+  border-width: 3px;
+  border-radius: 5px;
+  box-shadow: 0 3px 0 var(--pixel-black);
+}
+
 /* Stats Panel */
 .stats-panel {
   background: linear-gradient(180deg, #E8F5E9 0%, #C8E6C9 100%);
@@ -1442,8 +1451,300 @@ body {
   }
 }
 
-@media (max-width: 768px) {
+/* Desktop tweaks: stack the Night/Unmute buttons and increase their size/font */
+@media (min-width: 1201px) {
+
+  /* Target the first flex child inside the sidebar content (the small buttons container)
+     and force it to stack vertically on desktop for better visual balance. */
+  .sidebar .sidebar-content>.flex:first-child {
+    flex-direction: column !important;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  /* Make the small variant buttons larger and more prominent on desktop */
+  .sidebar .battle-btn.small {
+    padding: 16px 20px;
+    font-size: 15px;
+    border-width: 4px;
+    border-radius: 6px;
+    min-height: 48px;
+    box-shadow: 0 6px 0 var(--pixel-black);
+  }
+
+  /* Slightly larger font for the primary action (fight/night) */
+  .sidebar .battle-btn.small.fight {
+    font-size: 16px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+
+  /* Ensure surrounding panels have breathing room when buttons grow */
+  .sidebar .stats-panel {
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 1200px) {
   .game-screen {
-    min-height: 300px;
+    /* allow other stacked elements to control layout; don't force a large min-height */
+    min-height: 0;
+    /* Cap the height so mobile screens keep the intended aspect ratio without consuming the whole viewport */
+    max-height: 50vh;
+    /* ensure we preserve 16:9 on small screens */
+    aspect-ratio: 16 / 9;
+    width: 100%;
+  }
+}
+
+/* Make the Pixi game fill the available viewport on mobile so it can fit fully zoomed out. 
+   The center/main element is measured by `useElementSize` in `PokeworldDashboard`, so set it
+   to the correct height (viewport minus status bar and mobile footer) so Pixi gets the right size. */
+@media (max-width: 1200px) {
+  .main-container {
+    /* let main-container size naturally but ensure center-area can be sized explicitly */
+    height: auto;
+  }
+
+  .center-area {
+    /* Height available for the game: viewport height minus the status bar and mobile rail */
+    height: calc(100vh - var(--status-bar-height, 60px) - var(--bottom-rail-height, 96px) - 16px);
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .game-screen {
+    /* Fill the center-area completely so Pixi Stage receives the full size */
+    height: 100%;
+    max-height: none;
+    aspect-ratio: auto;
+  }
+
+  /* Remove extra padding that could shrink the measured size */
+  .center-area>div.absolute.inset-0 {
+    padding: 0;
+  }
+}
+
+/* Force-hide controls panel on narrow viewports to ensure meters don't show */
+@media (max-width: 640px) {
+  .controls-panel {
+    display: none !important;
+  }
+}
+
+/* Mobile: reduce font sizes for the WORLD STATUS panel and tighten small buttons */
+@media (max-width: 1200px) {
+  .stats-panel {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  .stats-title {
+    font-size: 9px;
+    padding-bottom: 4px;
+  }
+
+  .stat-row {
+    font-size: 11px;
+  }
+
+  .stat-value {
+    font-size: 10px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+  }
+
+  /* tighten small buttons further on mobile */
+  .battle-btn.small {
+    padding: 6px 8px;
+    font-size: 8px;
+    border-width: 2px;
+  }
+}
+
+/* Mobile: place the two sidebars together as a bottom rail (side-by-side) */
+@media (max-width: 1200px) {
+
+  /* Reserve space so the center area doesn't get covered by the fixed bottom rail */
+  .main-container {
+    padding-bottom: var(--bottom-rail-height, 80px);
+  }
+
+  /* Fix each sidebar to the bottom and make them each take 50% width */
+  .main-container>aside.sidebar {
+    position: fixed;
+    bottom: 0;
+    height: var(--bottom-rail-height, 80px);
+    width: 50%;
+    z-index: 40;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: hidden;
+  }
+
+  /* Left and right placement for the two asides (they are the only <aside> children)
+     Using nth-of-type among asides positions them correctly without changing JSX. */
+  .main-container>aside.sidebar:nth-of-type(1) {
+    left: 0;
+  }
+
+  .main-container>aside.sidebar:nth-of-type(2) {
+    right: 0;
+  }
+
+  /* Compact the header and lay out the content horizontally so both panels fit */
+  .main-container>aside.sidebar .sidebar-header {
+    display: none;
+  }
+
+  .main-container>aside.sidebar .sidebar-content {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    padding: 6px;
+    overflow: hidden;
+  }
+
+  /* Stack the inner panels vertically and split the available rail height */
+  .main-container>aside.sidebar .stats-panel,
+  .main-container>aside.sidebar .log-panel {
+    flex: 0 0 50%;
+    height: 50%;
+    min-height: 0;
+    margin-bottom: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 6px;
+  }
+
+  /* Shrink typography and controls to better fit mobile */
+  .main-container>aside.sidebar .stats-title,
+  .main-container>aside.sidebar .log-header,
+  .main-container>aside.sidebar .battle-btn {
+    font-size: 10px;
+    padding: 6px 8px;
+  }
+
+  /* Ensure center area has margin so it isn't overlapped by the fixed rail */
+  .center-area {
+    margin-bottom: var(--bottom-rail-height, 80px);
+  }
+}
+
+/* Hide the larger sidebars on mobile (we'll provide a compact mobile dashboard) */
+@media (max-width: 1200px) {
+  .main-container>aside.sidebar {
+    display: none !important;
+  }
+
+  /* Mobile dashboard footer */
+  .mobile-dashboard {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 60;
+    background: var(--dialog-bg);
+    border-top: 4px solid var(--pixel-black);
+    padding: 8px 12px;
+    display: flex;
+    justify-content: center;
+    box-shadow: 0 -6px 0 0 rgba(0, 0, 0, 0.15);
+  }
+
+  .mobile-dashboard-inner {
+    width: 100%;
+    max-width: 720px;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .mobile-log-panel {
+    position: fixed;
+    bottom: calc(var(--bottom-rail-height, 96px));
+    left: 8px;
+    right: 8px;
+    z-index: 70;
+    background: var(--pixel-white);
+    border: 3px solid var(--pixel-black);
+    border-radius: 8px;
+    max-height: 50vh;
+    overflow: auto;
+    padding: 8px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  }
+
+  .mobile-log-content {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .mobile-log-panel .log-item {
+    background: transparent;
+    border: none;
+    padding: 6px 0;
+    border-left: 3px solid var(--poke-blue);
+  }
+}
+
+/* Further mobile tweaks to make the bottom rail compact and usable */
+@media (max-width: 1200px) {
+
+  /* give a bit more room for touch targets */
+  :root {
+    --bottom-rail-height: 96px;
+  }
+
+  /* Make the panels horizontally centered and compact */
+  .main-container>aside.sidebar .stats-panel,
+  .main-container>aside.sidebar .log-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+  }
+
+  /* Hide lengthy log content on mobile to avoid overflow; expose header/button only */
+  .main-container>aside.sidebar .log-panel .log-content {
+    display: none;
+  }
+
+  /* Reduce the WORLD STATUS details; show only the TIME row and a small HP meter */
+  .main-container>aside.sidebar .stats-panel .stat-row {
+    display: none;
+  }
+
+  .main-container>aside.sidebar .stats-panel .stat-row:first-of-type {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  /* Ensure buttons remain visible and compact */
+  .main-container>aside.sidebar .battle-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 10px;
+    min-width: 64px;
+  }
+
+  /* Make the sidebar borders thinner on mobile so they don't dominate space */
+  .main-container>aside.sidebar {
+    border-width: 3px;
+  }
+
+  /* Slightly lift the center content so it doesn't get visually squished */
+  .center-area {
+    transform: translateY(-6px);
   }
 }

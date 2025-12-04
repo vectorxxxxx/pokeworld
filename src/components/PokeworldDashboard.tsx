@@ -42,7 +42,8 @@ export default function PokeworldDashboard() {
     } catch (e) {
       // ignore
     }
-    return !!(window as any).pokeworldMusicPlaying;
+    // Default to playing/unmuted when entering the dashboard.
+    return true;
   });
   const [selectedPlayer, setSelectedPlayer] = useState<undefined | string>(undefined);
   const [isNight, setIsNight] = useState<boolean>(false);
@@ -50,6 +51,8 @@ export default function PokeworldDashboard() {
   const [breath, setBreath] = useState<number>(50);
   const [intensity, setIntensity] = useState<number>(0);
   const [simStats, setSimStats] = useState<Record<string, { hp: number; pp: number; exp: number }>>({});
+  const [mobileLogOpen, setMobileLogOpen] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth <= 768);
 
   const setSelectedElement = (element?: { kind: 'player'; id: string }) => {
     if (!element) {
@@ -164,6 +167,48 @@ export default function PokeworldDashboard() {
     document.addEventListener('fullscreenchange', handler);
     return () => document.removeEventListener('fullscreenchange', handler);
   }, [centerDomRef, width, game]);
+
+  // On small screens (mobile), when the measured center size updates, compute a fit
+  // scale so the Pixi viewport shows the entire world fully zoomed-out without cropping.
+  useEffect(() => {
+    try {
+      if (!game) return;
+      // Only apply this on narrow viewports (mobile)
+      if (!isMobile) return;
+      const vp = pixiViewportRef.current;
+      if (!vp) return;
+      // Use the stage dimensions (mobile fixed 800x600) or measured center size on desktop
+      const stageW = isMobile ? 800 : width;
+      const stageH = isMobile ? 600 : height;
+      if (!stageW || !stageH) return;
+      // If the center DOM is fullscreen, skip — fullscreen logic already handles fit.
+      if (document.fullscreenElement === centerDomRef.current) return;
+
+      const worldWidth = game.worldMap.width * game.worldMap.tileDim;
+      const worldHeight = game.worldMap.height * game.worldMap.tileDim;
+      if (!worldWidth || !worldHeight) return;
+
+      const targetScale = Math.min(stageW / worldWidth, stageH / worldHeight);
+      try {
+        vp.zoom(targetScale);
+        vp.clampZoom({ minScale: targetScale, maxScale: Math.max(targetScale * 3.0, targetScale + 0.1) });
+        const centerPoint = new PIXI.Point(worldWidth / 2, worldHeight / 2);
+        // Animate to the fitted position/scale for a smooth transition.
+        vp.animate({ position: centerPoint, scale: targetScale });
+      } catch (e) {
+        // ignore animation/zoom errors
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [width, height, game, centerDomRef, isMobile]);
+
+  // Track window width to update `isMobile` responsively
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
     // Display server-driven world time: anchor to serverNowMs/serverStartMs so
     // all clients see the same time and progress it locally.
     useEffect(() => {
@@ -263,6 +308,51 @@ export default function PokeworldDashboard() {
     return () => window.removeEventListener('pokeworld:music', handler as EventListener);
   }, []);
 
+  // Register background music asset and try to auto-play when possible.
+  useEffect(() => {
+    if (!musicUrl) return;
+    try {
+      try {
+        // Register the background asset (ignore if already added).
+        const added = sound.add('background', musicUrl);
+        if (added) added.loop = true;
+      } catch (e) {
+        // ignore if add fails (already registered or unsupported)
+      }
+
+      if (musicPlaying) {
+        try {
+          const prev = (window as any).__pokeworldMusicInstance;
+          if (prev && typeof prev.stop === 'function') prev.stop();
+        } catch {}
+
+        try {
+          const playResult = sound.play('background');
+          // playResult may be a promise or an instance depending on the sound lib
+          if (playResult && typeof (playResult as any).then === 'function') {
+            (playResult as Promise<any>)
+              .then((instance) => {
+                (window as any).__pokeworldMusicInstance = instance;
+              })
+              .catch(() => {
+                // autoplay blocked or play failed; ignore
+              });
+          } else {
+            (window as any).__pokeworldMusicInstance = playResult;
+          }
+          (window as any).pokeworldMusicPlaying = true;
+          window.dispatchEvent(new CustomEvent('pokeworld:music', { detail: { isPlaying: true } }));
+        } catch (e) {
+          // autoplay may be blocked by the browser; ignore
+        }
+      }
+    } catch (e) {
+      // ignore any unexpected errors
+    }
+  }, [musicUrl]);
+
+  
+
   if (!worldId || !engineId || !game) return null;
 
   return (
@@ -273,35 +363,44 @@ export default function PokeworldDashboard() {
         <div className="cloud cloud-3" />
       </div>
 
-      <div className="status-bar" id="statusBar">
-        <span className="status-text">ROUTE 1 - READY FOR ADVENTURE</span>
-        <div className="hp-display">
-          <span>WORLD HP</span>
-          <div className="hp-bar-container">
+      <div className="status-bar flex items-center px-4" id="statusBar">
+        <span className="status-text hidden sm:inline mr-4">ROUTE 1 - READY FOR ADVENTURE</span>
+
+        {/* Left: WORLD HP label */}
+        <div className="hp-left flex items-center">
+          <span className="font-semibold">WORLD HP</span>
+        </div>
+
+        {/* Right: HP meter stretched to the far right */}
+        <div className="hp-meter flex-1 flex justify-end">
+          <div className="hp-bar-container w-48 max-w-[60vw]">
             <div className="hp-bar-fill" id="worldHpBar" style={{ width: '100%' }} />
           </div>
         </div>
       </div>
 
-      <div className="main-container max-w-[1400px] mx-auto flex gap-4 h-[calc(100vh-120px)]">
-        <aside className="sidebar w-64">
+      <div className="main-container max-w-[1400px] mx-auto flex flex-col md:flex-row gap-4 h-[calc(100vh-120px)]">
+        <aside className="sidebar w-full md:w-64 flex-none h-36 md:h-auto">
           <div className="sidebar-header">
             <div className="sidebar-title">TRAINER MENU</div>
           </div>
-          <div className="sidebar-content">
-            <button
-              className="battle-btn fight"
-              onClick={() => {
-                // Toggle night overlay locally and keep existing start event.
-                setIsNight((v) => !v);
-                window.dispatchEvent(new CustomEvent('pokeworld:start'));
-              }}
-            >
-              {isNight ? 'Day' : 'Night'}
-            </button>
-            <button
-              className="battle-btn run"
-              onClick={async () => {
+          <div className="sidebar-content flex flex-row md:flex-col gap-4 items-start">
+            <div className="flex flex-row gap-3 items-center flex-none">
+              <button
+                className="battle-btn fight small"
+                style={{ width: 'auto' }}
+                onClick={() => {
+                  // Toggle night overlay locally and keep existing start event.
+                  setIsNight((v) => !v);
+                  window.dispatchEvent(new CustomEvent('pokeworld:start'));
+                }}
+              >
+                {isNight ? 'Day' : 'Night'}
+              </button>
+              <button
+                className="battle-btn run small"
+                style={{ width: 'auto' }}
+                onClick={async () => {
                   try {
                     // Ensure the background music asset is registered like MusicButton does.
                     if (musicUrl) {
@@ -352,9 +451,10 @@ export default function PokeworldDashboard() {
                 }}
             >
               {musicPlaying ? 'MUTE' : 'UNMUTE'}
-            </button>
+              </button>
+            </div>
 
-            <div className="stats-panel">
+            <div className="stats-panel flex-1 md:flex-none w-auto">
               <div className="stats-title">WORLD STATUS</div>
               <div className="stat-row">
                 <span className="stat-label">TIME</span>
@@ -388,7 +488,7 @@ export default function PokeworldDashboard() {
               // `el` can be a generic HTMLElement; narrow/cast to `HTMLDivElement` for the ref.
               centerDomRef.current = el as HTMLDivElement | null;
           }}
-          className="center-area flex-1 relative bg-brown-900"
+          className="center-area flex-1 min-h-0 relative bg-brown-900"
         >
           <div ref={containerRef} className="absolute inset-0">
             <div className="game-screen" style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -411,7 +511,12 @@ export default function PokeworldDashboard() {
               >
                 FULLSCREEN
               </button>
-              <Stage width={Math.max(0, width)} height={Math.max(0, height)} options={{ backgroundColor: 0x7ab5ff }}>
+              <Stage
+                width={isMobile ? 800 : Math.max(0, width)}
+                height={isMobile ? 600 : Math.max(0, height)}
+                options={{ backgroundColor: 0x7ab5ff }}
+                style={{ width: '100%', height: '100%' }}
+              >
                 <ConvexProvider client={convex}>
                   <PixiGame
                     game={game}
@@ -443,7 +548,7 @@ export default function PokeworldDashboard() {
             </div>
           </div>
 
-          <div className="controls-panel absolute bottom-0 left-0 right-0 p-4 z-10">
+          <div className="controls-panel hidden sm:block absolute bottom-0 left-0 right-0 p-4 z-10">
             <div className="control-group" style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
               <div style={{ display: 'flex', flexDirection: 'column', width: 220 }}>
                 <label style={{ fontSize: 12, marginBottom: 6 }}>World Breath</label>
@@ -464,12 +569,12 @@ export default function PokeworldDashboard() {
           </div>
         </main>
 
-        <aside className="sidebar w-64">
+        <aside className="sidebar w-full md:w-64 flex-none h-36 md:h-auto">
           <div className="sidebar-header">
             <div className="sidebar-title">POKEDEX LOG</div>
           </div>
-          <div className="sidebar-content">
-            <div className="stats-panel">
+          <div className="sidebar-content flex flex-row md:flex-col gap-4 items-start">
+            <div className="stats-panel w-full md:w-auto">
               <div className="stats-title">CREATURE STATS</div>
               {
                 (() => {
@@ -510,7 +615,7 @@ export default function PokeworldDashboard() {
               }
             </div>
 
-            <div className="log-panel">
+            <div className="log-panel w-full md:w-auto">
               <div className="log-header">BATTLE LOG</div>
               <div className="log-content" id="liveFeed">
                 {/* Render messages for all active conversations using ConversationLog */}
@@ -546,6 +651,104 @@ export default function PokeworldDashboard() {
             </div>
           </div>
         </aside>
+        {/* Mobile-only compact dashboard (Night / Mute / Log). Visible only on small screens */}
+        <div className="mobile-dashboard sm:hidden">
+          <div className="mobile-dashboard-inner">
+            <button
+              className="battle-btn fight small"
+              onClick={() => {
+                setIsNight((v) => !v);
+                window.dispatchEvent(new CustomEvent('pokeworld:start'));
+              }}
+            >
+              {isNight ? 'DAY' : 'NIGHT'}
+            </button>
+
+            <button
+              className="battle-btn run small"
+              onClick={async () => {
+                try {
+                  if (musicUrl) {
+                    try {
+                      sound.add('background', musicUrl).loop = true;
+                    } catch (e) {
+                      // ignore if already added
+                    }
+                  }
+
+                  if (musicPlaying) {
+                    try {
+                      const inst = (window as any).__pokeworldMusicInstance;
+                      if (inst && typeof inst.stop === 'function') inst.stop();
+                      else sound.stop('background');
+                    } catch (e) {
+                      try {
+                        sound.stop('background');
+                      } catch {}
+                    }
+                    setMusicPlaying(false);
+                    (window as any).pokeworldMusicPlaying = false;
+                    (window as any).__pokeworldMusicInstance = undefined;
+                    window.dispatchEvent(new CustomEvent('pokeworld:music', { detail: { isPlaying: false } }));
+                  } else {
+                    try {
+                      const instance = await sound.play('background');
+                      (window as any).__pokeworldMusicInstance = instance;
+                    } catch (e) {
+                      // ignore play errors
+                    }
+                    setMusicPlaying(true);
+                    (window as any).pokeworldMusicPlaying = true;
+                    window.dispatchEvent(new CustomEvent('pokeworld:music', { detail: { isPlaying: true } }));
+                  }
+                } catch (e) {
+                  setMusicPlaying((v) => !v);
+                  (window as any).pokeworldMusicPlaying = !!(window as any).pokeworldMusicPlaying;
+                  window.dispatchEvent(new CustomEvent('pokeworld:music', { detail: { isPlaying: !!(window as any).pokeworldMusicPlaying } }));
+                }
+              }}
+            >
+              {musicPlaying ? 'MUTE' : 'UNMUTE'}
+            </button>
+
+            <button
+              className="battle-btn fight small"
+              onClick={() => setMobileLogOpen((v) => !v)}
+            >
+              {mobileLogOpen ? 'CLOSE' : 'LOG'}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile log panel (slides above footer) */}
+        {mobileLogOpen && (
+          <div className="mobile-log-panel sm:hidden">
+            <div className="mobile-log-content">
+              {[...game.world.conversations.values()].length === 0 && persistedLogs.length === 0 && (
+                <div className="log-item">
+                  <span className="log-time">--:--</span>
+                  <span>No recent events</span>
+                </div>
+              )}
+
+              {persistedLogs.slice(-20).map((m) => (
+                <div key={m.messageUuid ?? m._id} className="log-item">
+                  <span className="log-time">
+                    {new Date(m._creationTime).toLocaleTimeString([], { minute: '2-digit', second: '2-digit' })}
+                  </span>
+                  <span style={{ marginLeft: 8 }}>
+                    <strong>{m.authorName}: </strong>
+                    {m.text}
+                  </span>
+                </div>
+              ))}
+
+              {[...game.world.conversations.values()].map((conv) => (
+                <ConversationLog key={conv.id} conv={conv} worldId={worldId} onNewMessage={addPersistedMessage} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grass-decoration" />

@@ -347,7 +347,7 @@ body {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
   .site-logo {
     width: 320px;
     margin-bottom: 12px;
@@ -364,7 +364,7 @@ body {
   animation: logoPulse 3s ease-in-out infinite;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
   .logo-replacement {
     width: 320px;
     margin-bottom: 12px;
@@ -779,7 +779,7 @@ body {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
   .logo-text {
     font-size: 36px;
   }

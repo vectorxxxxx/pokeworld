@@ -1,3 +1,4 @@
+import { sound } from '@pixi/sound';
 import '../pokeworld-landing.css';
 
 type Props = {
@@ -97,7 +98,39 @@ export default function LandingPage({ onEnter }: Props) {
           </div>
         </div>
 
-        <button className="enter-btn" onClick={onEnter}>Enter the World</button>
+        <button
+          className="enter-btn"
+          onClick={async () => {
+            try {
+              // Try to register and play the default background music during this user gesture.
+              try {
+                const added = sound.add('background', '/assets/background.mp3');
+                if (added) added.loop = true;
+              } catch (e) {
+                // ignore if already added or add fails
+              }
+              const res = sound.play('background');
+              if (res && typeof (res as any).then === 'function') {
+                try {
+                  const inst = await (res as Promise<any>);
+                  (window as any).__pokeworldMusicInstance = inst;
+                } catch (e) {
+                  // play rejected (autoplay blocked)
+                }
+              } else {
+                (window as any).__pokeworldMusicInstance = res;
+              }
+              (window as any).pokeworldMusicPlaying = true;
+              window.dispatchEvent(new CustomEvent('pokeworld:music', { detail: { isPlaying: true } }));
+            } catch (e) {
+              // ignore any errors during play attempt
+            }
+
+            if (onEnter) onEnter();
+          }}
+        >
+          Enter the World
+        </button>
       </div>
 
       <div className="grass-decoration"></div>
