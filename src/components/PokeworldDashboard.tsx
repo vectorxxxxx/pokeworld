@@ -5,6 +5,7 @@ import { Viewport } from 'pixi-viewport';
 import { useEffect, useRef, useState } from 'react';
 import { useElementSize } from 'usehooks-ts';
 import { api } from '../../convex/_generated/api';
+import { Descriptions as PokedexDescriptions } from '../../data/characters';
 import { useServerGame } from '../hooks/serverGame.ts';
 import { useHistoricalTime } from '../hooks/useHistoricalTime.ts';
 import { useWorldHeartbeat } from '../hooks/useWorldHeartbeat.ts';
@@ -284,6 +285,19 @@ export default function PokeworldDashboard() {
 
   if (!worldId || !engineId || !game) return null;
 
+  // Selected player's display name/character and profile image helper
+  const selectedPlayerName = selectedPlayer ? game.playerDescriptions.get(selectedPlayer)?.name ?? selectedPlayer : undefined;
+  const selectedPlayerCharacter = selectedPlayer ? game.playerDescriptions.get(selectedPlayer)?.character : undefined;
+  const baseAssetUrl = (import.meta as any).env?.BASE_URL ?? '/';
+  const getPfpUrl = (name?: string, ext = 'png') => {
+    if (!name) return undefined;
+    const sanitized = name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+    return `${baseAssetUrl}assets/pfps/${sanitized}.${ext}`;
+  };
+
   return (
     <div className="world-root w-full h-screen" style={{ position: 'relative' }}>
       <div className="clouds">
@@ -292,23 +306,9 @@ export default function PokeworldDashboard() {
         <div className="cloud cloud-3" />
       </div>
 
-      <div className="status-bar flex items-center px-4" id="statusBar">
-        <span className="status-text hidden sm:inline mr-4">ROUTE 1 - READY FOR ADVENTURE</span>
+      {/* status bar removed: Route label and World HP were intentionally removed */}
 
-        {/* Left: WORLD HP label */}
-        <div className="hp-left flex items-center">
-          <span className="font-semibold">WORLD HP</span>
-        </div>
-
-        {/* Right: HP meter stretched to the far right */}
-        <div className="hp-meter flex-1 flex justify-end">
-          <div className="hp-bar-container w-48 max-w-[60vw]">
-            <div className="hp-bar-fill" id="worldHpBar" style={{ width: '100%' }} />
-          </div>
-        </div>
-      </div>
-
-      <div className="main-container max-w-[1400px] mx-auto flex flex-col md:flex-row gap-4 h-[calc(100vh-120px)]">
+      <div className="main-container max-w-[1400px] mx-auto flex flex-col md:flex-row gap-4 min-h-[calc(100vh-120px)]">
         <aside className="sidebar w-full md:w-64 flex-none h-36 md:h-auto">
           <div className="sidebar-header">
             <div className="sidebar-title">TRAINER MENU</div>
@@ -384,7 +384,54 @@ export default function PokeworldDashboard() {
             </div>
 
             <div className="stats-panel flex-1 md:flex-none w-auto">
-              <div className="stats-title">WORLD STATUS</div>
+              <div className="stats-title">TRAINER</div>
+
+              <div
+                className="trainer-box"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  borderRadius: 0,
+                  padding: 4,
+                  marginBottom: 0,
+                  fontFamily: "'VT323', monospace",
+                  boxSizing: 'border-box',
+                  width: '100%',
+                  maxHeight: 220,
+                  overflow: 'auto',
+                }}
+              >
+                <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a' }}>Trainer: <span style={{ fontWeight: 400 }}>Ichigo</span></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#0f172a', marginTop: 4 }}>
+                  <div>ID: 34721</div>
+                  <div>Region: Kanto</div>
+                </div>
+                <div style={{ fontSize: 12, color: '#0f172a', marginTop: 6 }}>Class: Ace Trainer</div>
+                <div style={{ fontSize: 12, color: '#0f172a' }}>Badges: 4/8</div>
+                <div style={{ fontSize: 12, color: '#0f172a' }}>Pokedex: Seen 72 | Caught 45</div>
+                <hr style={{ border: 'none', borderBottom: '2px dashed rgba(15,23,42,0.15)', margin: '8px 0' }} />
+
+                <div style={{ fontWeight: 700, marginBottom: 6 }}>Active Team:</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <img src={`${(import.meta as any).env?.BASE_URL ?? '/'}assets/pfps/pikachu.png`} alt="Pikachu" style={{ width: 28, height: 28 }} />
+                    <div style={{ fontSize: 12 }}>Pikachu Lv.32 ⚡</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <img src={`${(import.meta as any).env?.BASE_URL ?? '/'}assets/pfps/jigglypuff.png`} alt="Jigglypuff" style={{ width: 28, height: 28 }} />
+                    <div style={{ fontSize: 12 }}>Jigglypuff Lv.12</div>
+                  </div>
+                </div>
+
+                <div style={{ borderTop: '2px dashed rgba(15,23,42,0.08)', marginTop: 8, paddingTop: 6 }}>
+                  <div style={{ fontWeight: 700, marginBottom: 4 }}>Stats:</div>
+                  <div style={{ fontSize: 12, display: 'flex', justifyContent: 'space-between' }}>
+                    <div>Wins 54 | Losses 12 | Shiny 1</div>
+                    <div>Favorite Type: Fire</div>
+                  </div>
+                </div>
+              </div>
+
               <div className="stat-row">
                 <span className="stat-label">TIME</span>
                 <span className="stat-value" id="timeDisplay">{displayTime}</span>
@@ -507,42 +554,68 @@ export default function PokeworldDashboard() {
             <div className="sidebar-title">POKEDEX LOG</div>
           </div>
           <div className="sidebar-content flex flex-row md:flex-col gap-4 items-start">
-            <div className="stats-panel w-full md:w-auto">
-              <div className="stats-title">CREATURE STATS</div>
-              {
-                (() => {
-                  const s = selectedPlayer ? simStats[selectedPlayer] || { hp: 0, pp: 0, exp: 0 } : { hp: 0, pp: 0, exp: 0 };
-                  const pct = (v: number) => `${Math.max(0, Math.min(100, Math.round(v)))}%`;
+            <div className="stats-panel w-full md:w-auto" style={{ fontSize: '16px' }}>
+              <div className="stats-title" style={{ fontSize: '12px', fontWeight: 700 }}>CREATURE STATS</div>
+              {!selectedPlayer ? (
+                <div style={{ padding: '12px 0', color: '#000', fontSize: 14 }}>
+                  Click on a character to see stats
+                </div>
+              ) : (
+                <div style={{ padding: '6px 0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                    <div style={{ fontWeight: 700, fontSize: '18px' }}>{selectedPlayerName}</div>
+                    <img
+                      src={getPfpUrl(selectedPlayerName, 'png')}
+                      alt={selectedPlayerName}
+                      style={{ width: 40, height: 40, borderRadius: 999 }}
+                      onError={(e) => {
+                        const img = e.currentTarget as HTMLImageElement;
+                        const tried = img.dataset.tried ?? 'none';
+                        if (tried === 'none') {
+                          img.dataset.tried = 'png';
+                          img.src = getPfpUrl(selectedPlayerName, 'jpg') ?? img.src;
+                        } else if (tried === 'png') {
+                          img.dataset.tried = 'jpg';
+                          img.src = getPfpUrl(selectedPlayerName, 'webp') ?? img.src;
+                        } else {
+                          img.dataset.tried = 'fallback';
+                          img.src = `${baseAssetUrl}assets/pfps/default.png`;
+                        }
+                      }}
+                    />
+                  </div>
+                  <div style={{ fontSize: 14, color: '#9ca3af', marginTop: 4 }}>
+                    {selectedPlayerCharacter ?? ''}
+                  </div>
+                </div>
+              )}
+              {selectedPlayer && (() => {
+                  const s = simStats[selectedPlayer] || { hp: 0, pp: 0, exp: 0 };
+                  // Show numeric HP and derived battler power and generation.
+                  const hp = Math.round(s.hp);
+                  const battlerPower = Math.max(0, Math.round(hp * 1.5 + (s.pp ?? 0) * 1.2 + (s.exp ?? 0)));
+                  // Deterministic generation based on selectedPlayer id
+                  const generation = (() => {
+                    let seed = 0;
+                    for (let i = 0; i < selectedPlayer.length; i++) seed = (seed * 31 + selectedPlayer.charCodeAt(i)) & 0xffffffff;
+                    return (Math.abs(seed) % 8) + 1; // Gen 1..8
+                  })();
+
                   return (
-                    <>
-                      <div className="exp-container">
-                        <div className="exp-label">
-                          <span>HP</span>
-                          <span>{pct(s.hp)}</span>
-                        </div>
-                        <div className="exp-bar">
-                          <div className="exp-fill hp" style={{ width: pct(s.hp) }} />
-                        </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ fontWeight: 600 }}>HP</span>
+                        <span>{hp}</span>
                       </div>
-                      <div className="exp-container">
-                        <div className="exp-label">
-                          <span>PP</span>
-                          <span>{pct(s.pp)}</span>
-                        </div>
-                        <div className="exp-bar">
-                          <div className="exp-fill pp" style={{ width: pct(s.pp) }} />
-                        </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ fontWeight: 600 }}>Battler Power</span>
+                        <span>{battlerPower}</span>
                       </div>
-                      <div className="exp-container">
-                        <div className="exp-label">
-                          <span>EXP</span>
-                          <span>{pct(s.exp)}</span>
-                        </div>
-                        <div className="exp-bar">
-                          <div className="exp-fill exp" style={{ width: pct(s.exp) }} />
-                        </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ fontWeight: 600 }}>Generation</span>
+                        <span>{`Gen ${generation}`}</span>
                       </div>
-                    </>
+                    </div>
                   );
                 })()
               }
@@ -682,6 +755,53 @@ export default function PokeworldDashboard() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* New Pokedex section below the dashboard */}
+      <div className="pokedex-section max-w-[1400px] mx-auto p-6 lg:p-20">
+        <div className="box w-full bg-white rounded-lg p-6 lg:p-20 shadow-lg">
+          <h2 className="p-2 font-display text-xl tracking-wider text-left lowercase">pokedex</h2>
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            {PokedexDescriptions.map((d, i) => {
+              const id = `#${String(i + 1).padStart(4, '0')}`;
+              const name = d.name;
+              const base = (import.meta as any).env?.BASE_URL ?? '/';
+              const sanitized = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+              const img = `${base}assets/pfps/${sanitized}.png`;
+
+              const typeMap: Record<string, string[]> = {
+                Kabuto: ['Rock', 'Water'],
+                Mewtwo: ['Psychic'],
+                Pikachu: ['Electric'],
+                Eevee: ['Normal'],
+                Jigglypuff: ['Fairy'],
+              };
+
+              const types = typeMap[name] ?? [];
+
+              return (
+                <div key={name} className="p-3 md:p-4 bg-white rounded-lg shadow-xl hover:shadow-2xl transition-shadow">
+                  <div className="flex flex-col gap-2 md:gap-3">
+                    <div className="bg-gray-100 rounded-lg p-3 md:p-4 flex justify-center items-center">
+                      <img
+                        src={img}
+                        alt={name}
+                        className="w-28 h-28 md:w-40 md:h-40 lg:w-48 lg:h-48 object-contain"
+                      />
+                    </div>
+                    <div className="text-gray-400 text-xs md:text-sm">{id}</div>
+                    <div className="font-bold text-lg md:text-2xl">{name}</div>
+                    <div className="flex gap-2 flex-wrap">
+                      {types.map((t) => (
+                        <span key={t} className="bg-green-100 text-gray-800 px-2 py-1 rounded text-xs">{t}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       <div className="grass-decoration" />
