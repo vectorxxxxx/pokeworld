@@ -92,9 +92,9 @@ export const PixiGame = (props: {
     if (!viewportRef.current || humanPlayerId === undefined) return;
 
     const humanPlayer = props.game.world.players.get(humanPlayerId)!;
+    // Center on the user's avatar but do not change the zoom/scale.
     viewportRef.current.animate({
       position: new PIXI.Point(humanPlayer.position.x * tileDim, humanPlayer.position.y * tileDim),
-      scale: 1.5,
     });
   }, [humanPlayerId]);
 
@@ -106,8 +106,8 @@ export const PixiGame = (props: {
       worldWidth={width * tileDim}
       worldHeight={height * tileDim}
       viewportRef={viewportRef}
-      // disable zoom on mobile while keeping drag
-      allowZoom={!props.isMobile}
+      // Always disable zoom so only panning (drag) remains active.
+      allowZoom={false}
     >
       <PixiStaticMap
         map={props.game.worldMap}
